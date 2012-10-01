@@ -58,7 +58,7 @@ int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, Xrd
     const char * nodes_name;
     char * nodes_host;
     
-    SMask_t mask[4] = {0,0,0,0};
+    SMask_t mask[4] = {-1,0,0,0};
     
     // Get the hostname of the client who sends the request
     XrdOucEnv env(opaque);
@@ -99,8 +99,12 @@ int PrefMatchTopDomain::Pref(XrdCmsReq *, const char *, const char * opaque, Xrd
             if(segment < i+1){
                 *(partial_client_host+index)=*(client_host+index);
                 if(*(client_host+index)=='.') segment++;
+                index ++;
             }
-            index ++;
+            else{
+                break;
+            }
+            
         }
         *(partial_client_host+index) = '\0';
         strcpy(partial_client_host_array[i-1], partial_client_host);
