@@ -9,7 +9,7 @@
 #define ____PrefGeo__
 
 #include <iostream>
-#include <Python.h>
+//#include <Python.h>
 
 #include "XrdCms/XrdCmsXmi.hh"
 
