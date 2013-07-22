@@ -5,7 +5,7 @@
 //
 // 
 
-#include <Python.h>
+//#include <Python.h>
 #include <string.h>
 #include <iostream>
 
@@ -25,7 +25,7 @@ extern "C" {
     return new PrefGeo(env);
   }
 }
-
+/*
 char * PrefGeo::GetIP(char * hostname) {
   char * addr;
   PyObject *pName, *pModule, *pFunc;
@@ -73,9 +73,9 @@ char * PrefGeo::GetIP(char * hostname) {
   Py_Finalize();
   return addr;
 }
-
+*/
 int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pref, XrdCmsPrefNodes& nodes) {
-  setenv("PYTHONPATH", ".", 0);
+  //  setenv("PYTHONPATH", ".", 0);
   XrdSysError *eDest = envinfo->eDest;
   eDest->Emsg("PrefGeo", "Preference plugin is PrefGeo");
   // Get the hostname of the client who sends the request
@@ -84,8 +84,8 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   eDest->Emsg("PrefGeo", "client host name is:", client_host);
   
   //Translate client host name to IP address
-  char * client_ip = GetIP(client_host);
-  eDest->Emsg("PrefGeo", "client IP is:", client_ip);
+  //char * client_ip = GetIP(client_host);
+  //eDest->Emsg("PrefGeo", "client IP is:", client_ip);
   
   // Set all prefs to the same first
   const char * node_name = NULL;
