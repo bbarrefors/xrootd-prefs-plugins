@@ -1,8 +1,10 @@
 
 include_directories ( ${XROOTD_INCLUDES} )
+include_directories ( ${PYTHON_INCLUDE_DIRS} )
 add_library (PrefAllowXmi MODULE PrefAllow.cc)
 add_library (PrefDenyXmi MODULE PrefDeny.cc)
 add_library (PrefOneXmi MODULE PrefOne.cc)
 add_library (PrefClientXmi MODULE PrefClient.cc)
 add_library (PrefMatchTopDomainXmi MODULE PrefMatchTopDomain.cc)
 add_library (PrefGeoXmi MODULE PrefGeo.cc)
+target_link_libraries(PrefGeoXmi ${PYTHON_LIBRARIES})
