@@ -25,18 +25,22 @@ extern "C" {
     return new PrefGeo(env);
   }
 }
-/*
+
 char * PrefGeo::GetIP(char * hostname) {
-  char * addr;
+  XrdSysError *eDest = envinfo->eDest;
+  setenv("PYTHONPATH", "/home/barrefors/xrootd-prefs-plugins/src", 0);
+  //Py_SetProgramName();
+  //eDest->Emsg("PrefGeo", "Current working dir is:", get_current_dir_name());
+  char * addr = NULL;
   PyObject *pName, *pModule, *pFunc;
   PyObject *pArgs, *pValue;
   Py_Initialize();
-  pName = PyString_FromString("IPGeoPlugin");
+  pName = PyString_FromString("GetHostname");
   pModule = PyImport_Import(pName);
   Py_DECREF(pName);
   
   if(pModule != NULL) {
-    pFunc = PyObject_GetAttrString(pModule, "HostnameToIP");
+    pFunc = PyObject_GetAttrString(pModule, "GetHostname");
     
     if (pFunc && PyCallable_Check(pFunc)) {
       pArgs = PyTuple_New(1);
@@ -45,37 +49,40 @@ char * PrefGeo::GetIP(char * hostname) {
       pValue = PyObject_CallObject(pFunc, pArgs);
       Py_DECREF(pArgs);
       if (pValue != NULL) {
+	eDest->Emsg("PrefGeo", "Value was returned");
         addr = PyString_AsString(pValue);
         Py_DECREF(pValue);
       }
       else {
+	eDest->Emsg("PrefGeo", "Call failed");
         Py_DECREF(pFunc);
         Py_DECREF(pModule);
         //PyErr_Print();
 	//fprintf(stderr, "Call Failed\n");
-	return 1;
+	return addr;
       }
     }
     else {
+      eDest->Emsg("PrefGeo", "Cannot find function");
       //if (PyErr_Occurred())
         //PyErr_Print();
 	//fprintf(stderr, "Cannot find function\n");
-      return 1;
+      return addr;
     }
     Py_XDECREF(pFunc);
     Py_DECREF(pModule);
   }
   else {
+    eDest->Emsg("PrefGeo", "Failed to load file");
     //PyErr_Print();
     //fprintf(stderr, "Failed to load file\n");
-    return 1;
+    return addr;
   }
   Py_Finalize();
   return addr;
 }
-*/
+
 int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pref, XrdCmsPrefNodes& nodes) {
-  //  setenv("PYTHONPATH", ".", 0);
   XrdSysError *eDest = envinfo->eDest;
   eDest->Emsg("PrefGeo", "Preference plugin is PrefGeo");
   // Get the hostname of the client who sends the request
@@ -84,8 +91,8 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   eDest->Emsg("PrefGeo", "client host name is:", client_host);
   
   //Translate client host name to IP address
-  //char * client_ip = GetIP(client_host);
-  //eDest->Emsg("PrefGeo", "client IP is:", client_ip);
+  char * client_ip = GetIP(client_host);
+  eDest->Emsg("PrefGeo", "client IP is:", client_ip);
   
   // Set all prefs to the same first
   const char * node_name = NULL;
