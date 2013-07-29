@@ -26,7 +26,7 @@
 
 import re
 import sys 
-import math
+#import math
 import urllib
 import urllib2
 import BeautifulSoup

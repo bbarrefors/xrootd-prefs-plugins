@@ -28,18 +28,20 @@ extern "C" {
 
 char * PrefGeo::GetIP(char * hostname) {
   XrdSysError *eDest = envinfo->eDest;
-  setenv("PYTHONPATH", "/home/barrefors/xrootd-prefs-plugins/src", 0);
-  //Py_SetProgramName();
+  //freopen ("/home/barrefors/myfile.txt","w",stdout);
+  setenv("PYTHONPATH", "/home/barrefors/build-xrootd-prefs-plugins/src", 0);
   //eDest->Emsg("PrefGeo", "Current working dir is:", get_current_dir_name());
   char * addr = NULL;
   PyObject *pName, *pModule, *pFunc;
   PyObject *pArgs, *pValue;
   Py_Initialize();
+  //pName = PyString_FromString("IPGeoPlugin");
   pName = PyString_FromString("GetHostname");
   pModule = PyImport_Import(pName);
   Py_DECREF(pName);
   
   if(pModule != NULL) {
+    //pFunc = PyObject_GetAttrString(pModule, "domainToIP");
     pFunc = PyObject_GetAttrString(pModule, "GetHostname");
     
     if (pFunc && PyCallable_Check(pFunc)) {
@@ -57,16 +59,14 @@ char * PrefGeo::GetIP(char * hostname) {
 	eDest->Emsg("PrefGeo", "Call failed");
         Py_DECREF(pFunc);
         Py_DECREF(pModule);
-        //PyErr_Print();
-	//fprintf(stderr, "Call Failed\n");
+        PyErr_Print();
 	return addr;
       }
     }
     else {
       eDest->Emsg("PrefGeo", "Cannot find function");
       //if (PyErr_Occurred())
-        //PyErr_Print();
-	//fprintf(stderr, "Cannot find function\n");
+        PyErr_Print();
       return addr;
     }
     Py_XDECREF(pFunc);
@@ -74,11 +74,11 @@ char * PrefGeo::GetIP(char * hostname) {
   }
   else {
     eDest->Emsg("PrefGeo", "Failed to load file");
-    //PyErr_Print();
-    //fprintf(stderr, "Failed to load file\n");
+    PyErr_Print();
     return addr;
   }
   Py_Finalize();
+  fclose(stdout);
   return addr;
 }
 
