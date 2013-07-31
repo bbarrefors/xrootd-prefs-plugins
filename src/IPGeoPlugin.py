@@ -26,7 +26,7 @@
 
 import re
 import sys 
-#import math
+import math
 import urllib
 import urllib2
 import BeautifulSoup
@@ -63,7 +63,7 @@ def normalizeWhitespace(str):
     #       like tabs etc are now normal spaces.
     return re.sub(r'\s+', ' ', str.strip())
     
-def domainToIP(domain):
+def hostnameToIP(domain):
     # PRE: Domain name in format [::IP]:PORT
     # POST: IP address of domain name
     IP = str(domain).strip('[::').partition(']')
@@ -76,11 +76,11 @@ def IPToSubnet(IP):
     # Post: Valid Class C IPv4 subnet address
     return re.sub(r'\.\d\d?\d?$', '.0', IP.strip())
 
-def hostnameToIP(hostname):
+def domainToIP(hostname):
     # PRE: Hostname
     # POST: IP address of hostname
-    IP = socket.gethostbyname(hostname)
-    return IP
+    addr = socket.gethostbyname(hostname)
+    return addr
 
 def getGeody(IP):
     # Fetch location data from geody

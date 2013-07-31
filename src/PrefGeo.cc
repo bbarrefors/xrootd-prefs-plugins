@@ -8,6 +8,7 @@
 #include <Python.h>
 #include <string.h>
 #include <iostream>
+#include <dlfcn.h>
 
 #include "PrefGeo.hh"
 #include "PrefClient.hh"
@@ -22,27 +23,27 @@ extern "C" {
 
   XrdCmsXmi *XrdCmsgetXmi(int, char **, XrdCmsXmiEnv * env)
   {
+    // Load the python library with global symbol resolution.
+    dlopen("libpython2.6.so.1.0", RTLD_NOW | RTLD_NOLOAD | RTLD_GLOBAL);
+
     return new PrefGeo(env);
   }
 }
 
 char * PrefGeo::GetIP(char * hostname) {
   XrdSysError *eDest = envinfo->eDest;
-  //freopen ("/home/barrefors/myfile.txt","w",stdout);
-  setenv("PYTHONPATH", "/home/barrefors/build-xrootd-prefs-plugins/src", 0);
-  //eDest->Emsg("PrefGeo", "Current working dir is:", get_current_dir_name());
+  setenv("PYTHONPATH", PATH_PYTHON_SCRIPT, 0);
+  eDest->Emsg("PrefGeo", "client host name is:", hostname);
   char * addr = NULL;
   PyObject *pName, *pModule, *pFunc;
   PyObject *pArgs, *pValue;
   Py_Initialize();
-  //pName = PyString_FromString("IPGeoPlugin");
-  pName = PyString_FromString("GetHostname");
+  pName = PyString_FromString("IPGeoPlugin");
   pModule = PyImport_Import(pName);
   Py_DECREF(pName);
   
   if(pModule != NULL) {
-    //pFunc = PyObject_GetAttrString(pModule, "domainToIP");
-    pFunc = PyObject_GetAttrString(pModule, "GetHostname");
+    pFunc = PyObject_GetAttrString(pModule, "domainToIP");
     
     if (pFunc && PyCallable_Check(pFunc)) {
       pArgs = PyTuple_New(1);
@@ -51,8 +52,9 @@ char * PrefGeo::GetIP(char * hostname) {
       pValue = PyObject_CallObject(pFunc, pArgs);
       Py_DECREF(pArgs);
       if (pValue != NULL) {
-	eDest->Emsg("PrefGeo", "Value was returned");
-        addr = PyString_AsString(pValue);
+        char * tmp_addr = PyString_AsString(pValue);
+	addr = tmp_addr;
+	eDest->Emsg("PrefGeo", "IP address is", addr);
         Py_DECREF(pValue);
       }
       else {
@@ -65,7 +67,7 @@ char * PrefGeo::GetIP(char * hostname) {
     }
     else {
       eDest->Emsg("PrefGeo", "Cannot find function");
-      //if (PyErr_Occurred())
+      if (PyErr_Occurred())
         PyErr_Print();
       return addr;
     }
@@ -78,7 +80,7 @@ char * PrefGeo::GetIP(char * hostname) {
     return addr;
   }
   Py_Finalize();
-  fclose(stdout);
+  eDest->Emsg("PrefGeo", "IP address again is", addr);
   return addr;
 }
 
@@ -88,11 +90,10 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   // Get the hostname of the client who sends the request
   XrdOucEnv env(opaque);
   char *client_host = env.Get("client_host");
-  eDest->Emsg("PrefGeo", "client host name is:", client_host);
   
   //Translate client host name to IP address
   char * client_ip = GetIP(client_host);
-  eDest->Emsg("PrefGeo", "client IP is:", client_ip);
+  eDest->Emsg("PrefGeo", "Client IP once more is:", client_ip);
   
   // Set all prefs to the same first
   const char * node_name = NULL;
