@@ -9,6 +9,7 @@
 #include <string.h>
 #include <iostream>
 #include <dlfcn.h>
+//#include <cstring>
 
 #include "PrefGeo.hh"
 #include "PrefClient.hh"
@@ -24,7 +25,7 @@ extern "C" {
   XrdCmsXmi *XrdCmsgetXmi(int, char **, XrdCmsXmiEnv * env)
   {
     // Load the python library with global symbol resolution.
-    dlopen("libpython2.6.so.1.0", RTLD_NOW | RTLD_NOLOAD | RTLD_GLOBAL);
+    dlopen(PYTHON_LIB, RTLD_NOW | RTLD_NOLOAD | RTLD_GLOBAL);
 
     return new PrefGeo(env);
   }
@@ -38,12 +39,12 @@ char * PrefGeo::GetIP(char * hostname) {
   PyObject *pName, *pModule, *pFunc;
   PyObject *pArgs, *pValue;
   Py_Initialize();
-  pName = PyString_FromString("IPGeoPlugin");
+  pName = PyString_FromString(IP_PLUGIN);
   pModule = PyImport_Import(pName);
   Py_DECREF(pName);
   
   if(pModule != NULL) {
-    pFunc = PyObject_GetAttrString(pModule, "domainToIP");
+    pFunc = PyObject_GetAttrString(pModule, IP_LOOKUP);
     
     if (pFunc && PyCallable_Check(pFunc)) {
       pArgs = PyTuple_New(1);
@@ -52,9 +53,9 @@ char * PrefGeo::GetIP(char * hostname) {
       pValue = PyObject_CallObject(pFunc, pArgs);
       Py_DECREF(pArgs);
       if (pValue != NULL) {
-        char * tmp_addr = PyString_AsString(pValue);
-	addr = tmp_addr;
-	eDest->Emsg("PrefGeo", "IP address is", addr);
+        size_t len = strlen(PyString_AsString(pValue));
+	addr = new char[len];
+	strcpy(addr, PyString_AsString(pValue));
         Py_DECREF(pValue);
       }
       else {
@@ -80,7 +81,6 @@ char * PrefGeo::GetIP(char * hostname) {
     return addr;
   }
   Py_Finalize();
-  eDest->Emsg("PrefGeo", "IP address again is", addr);
   return addr;
 }
 
@@ -93,7 +93,7 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   
   //Translate client host name to IP address
   char * client_ip = GetIP(client_host);
-  eDest->Emsg("PrefGeo", "Client IP once more is:", client_ip);
+  eDest->Emsg("PrefGeo", "Client IP is:", client_ip);
   
   // Set all prefs to the same first
   const char * node_name = NULL;
