@@ -73,7 +73,7 @@ public:
   PrefGeo(XrdCmsXmiEnv* env) : envinfo(env) {}
   ~PrefGeo() {}
 
-  char * GetIP(char * hostname);
+  long GetDistance(char * host_hostname, char * client_hostname);
   
 private:
   
