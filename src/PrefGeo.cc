@@ -30,11 +30,10 @@ extern "C" {
   }
 }
 
-long PrefGeo::GetDistance(char * host_hostname, char * client_hostname) {
+long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname) {
   XrdSysError *eDest = envinfo->eDest;
   setenv("PYTHONPATH", PATH_PYTHON_SCRIPT, 0);
-  eDest->Emsg("PrefGeo", "client host name is:", hostname);
-  long distance = 1000000;
+  long distance = 100000;
   PyObject *pName, *pModule, *pFunc;
   PyObject *pArgs, *pValue;
   Py_Initialize();
@@ -48,8 +47,12 @@ long PrefGeo::GetDistance(char * host_hostname, char * client_hostname) {
     if (pFunc && PyCallable_Check(pFunc)) {
       pArgs = PyTuple_New(3);
       // Fill in args
-      pValue = PyString_FromString(hostname);
+      pValue = PyString_FromString(host_hostname);
       PyTuple_SetItem(pArgs, 0, pValue);
+      pValue = PyString_FromString(client_hostname);
+      PyTuple_SetItem(pArgs, 1, pValue);
+      pValue = PyString_FromString(PATH_PYGEOIP_DATABASE);
+      PyTuple_SetItem(pArgs, 2, pValue);
       pValue = PyObject_CallObject(pFunc, pArgs);
       Py_DECREF(pArgs);
       if (pValue != NULL) {
@@ -92,6 +95,7 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   const char * node_name = NULL;
   pref.SetPreference(0, -1);  
   //SMask_t mask = 0;
+  long distance[XRD_MAX_NODES];
   for (unsigned int i=0; i<XRD_MAX_NODES; i++)
     {
       node_name = nodes.GetNodeName(i);
@@ -100,9 +104,11 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
 	  eDest->Emsg("PrefGeo", "server node name is:", node_name);
 	  // Server node name is in the format [::IP]:PORT
 	  // Get distance from python script
-	  int distance = GetDistance(node_name, client_host);
+	  distance[i] = GetDistance(node_name, client_host);
 	}
     }
+  // Sort distance array, shortest first
+  // Give highest prio to lowest distance, if more than priority levels just give the rest lowest priority
   // Set preference mask based on distance
   //pref.SetPreference(1, mask);
   return 0;

@@ -59,6 +59,7 @@ def hostIPFix(host_ip):
     # PRE: Domain name in format [::IP]:PORT
     # POST: IP address of domain name
     ip = str(host_ip).strip('[::').partition(']')
+    ip = ip[0]
     return ip
 
 def domainToIP(hostname):
@@ -72,7 +73,7 @@ def IPToSubnet(ip):
     # '.' with '0'
     # Pre: A valid IPv4 address
     # Post: Valid Class C IPv4 subnet address
-    return re.sub(r'\.\d\d?\d?$', '.0', ip.strip())
+    return re.sub(r'\.\d\d?\d?$', '.0', str(ip).strip())
 
 def coordinateDiff(host_lat, host_long, client_lat, client_long):
     # Find distance between two coordinates
@@ -101,12 +102,12 @@ def IPDistance(host_ip, client_domain, database_path):
     client_subnet = IPToSubnet(domainToIP(client_domain))
     # Use PygeoIP
     gi4 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCity.dat', pygeoip.MEMORY_CACHE)
-    #gi6 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCityv6.dat', pygeoip.MEMORY_CACHE)
+    gi6 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCityv6.dat', pygeoip.MEMORY_CACHE)
     host_dict = gi4.record_by_addr(host_subnet)
-    if (!host_dict):
+    if (not host_dict):
         return 1000000
     client_dict = gi4.record_by_addr(client_subnet)
-    if (!client_dict):
+    if (not client_dict):
         return 1000000
     host_lat = host_dict['latitude']
     host_long = host_dict['longitude']

@@ -1,0 +1,20 @@
+DEPENDENCIES
+Install PyGeoIP module for python
+Download it here 
+
+INSTALL
+
+mkdir /path/to/build/
+cd /path/to/build/
+ccmake /path/to/source/
+Make sure CMAKE_INSTALL_PREFIX is same as xrootd install dir (/usr or /usr/local)
+Press c
+Press g
+cmake /path/to/source/
+make
+
+
+RUN
+Add 
+cms.xmilib /path/to/build/src/libPref<wanted plugin>Xmi.so
+to your .cfg file for the redirector
