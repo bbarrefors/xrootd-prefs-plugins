@@ -27,9 +27,6 @@
 import re
 import sys 
 import math
-import urllib
-import urllib2
-import BeautifulSoup
 import socket
 import sqlite3 as lite
 import pygeoip
