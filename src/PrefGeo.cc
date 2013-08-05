@@ -92,6 +92,7 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   XrdOucEnv env(opaque);
   char *client_host = env.Get("client_host");
   // Set all prefs to the same first
+  eDest->Emsg("PrefGeo", "Client node name is:", client_host);
   const char * node_name = NULL;
   pref.SetPreference(0, -1);  
   //SMask_t mask = 0;
@@ -101,10 +102,24 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
       node_name = nodes.GetNodeName(i);
       if (node_name && *node_name) 
 	{
-	  eDest->Emsg("PrefGeo", "server node name is:", node_name);
+	  eDest->Emsg("PrefGeo", "Server node name is:", node_name);
 	  // Server node name is in the format [::IP]:PORT
 	  // Get distance from python script
 	  distance[i] = GetDistance(node_name, client_host);
+	  long dist_tmp = distance[i];
+	  if (dist_tmp == 1000000) {
+	    eDest->Emsg("PrefGeo", "Distance between nodes is 1000000, IP unknown");
+	  }
+	  else if (dist_tmp == 100000) {
+	    eDest->Emsg("PrefGeo", "Distance between nodes is 100000, Call failed");
+	  }
+	  else if (dist_tmp > 0) {
+	    eDest->Emsg("PrefGeo", "Distance between nodes is known, everything should have worked");
+	  }
+	  else {
+	    eDest->Emsg("PrefGeo", "Shit must have gone down, idk what");
+	  }
+	  
 	}
     }
   // Sort distance array, shortest first
