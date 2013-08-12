@@ -9,6 +9,7 @@
 #include <string.h>
 #include <iostream>
 #include <dlfcn.h>
+#include <sstream>
 
 #include "PrefGeo.hh"
 #include "PrefClient.hh"
@@ -107,19 +108,11 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
 	  // Get distance from python script
 	  distance[i] = GetDistance(node_name, client_host);
 	  long dist_tmp = distance[i];
-	  if (dist_tmp == 1000000) {
-	    eDest->Emsg("PrefGeo", "Distance between nodes is 1000000, IP unknown");
-	  }
-	  else if (dist_tmp == 100000) {
-	    eDest->Emsg("PrefGeo", "Distance between nodes is 100000, Call failed");
-	  }
-	  else if (dist_tmp > 0) {
-	    eDest->Emsg("PrefGeo", "Distance between nodes is known, everything should have worked");
-	  }
-	  else {
-	    eDest->Emsg("PrefGeo", "Shit must have gone down, idk what");
-	  }
-	  
+	  std::stringstream ss;
+	  ss << dist_tmp;
+	  const char * dist_str = NULL;
+	  dist_str = ss.str().c_str();
+	  eDest->Emsg("PrefGeo", "Distance between nodes:", dist_str);
 	}
     }
   // Sort distance array, shortest first
