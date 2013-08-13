@@ -91,6 +91,7 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   eDest->Emsg("PrefGeo", "Preference plugin is PrefGeo");
   // Get the hostname of the client who sends the request
   XrdOucEnv env(opaque);
+  SMask_t mask[MAX_PREF_LEVELS] = {0,0,0,0};
   char *client_host = env.Get("client_host");
   // Set all prefs to the same first
   eDest->Emsg("PrefGeo", "Client node name is:", client_host);
@@ -98,11 +99,13 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   pref.SetPreference(0, -1);  
   //SMask_t mask = 0;
   long distance[XRD_MAX_NODES];
+  int num_hosts = 0;
   for (unsigned int i=0; i<XRD_MAX_NODES; i++)
     {
       node_name = nodes.GetNodeName(i);
       if (node_name && *node_name) 
 	{
+	  num_hosts++;
 	  eDest->Emsg("PrefGeo", "Server node name is:", node_name);
 	  // Server node name is in the format [::IP]:PORT
 	  // Get distance from python script
@@ -115,9 +118,40 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
 	  eDest->Emsg("PrefGeo", "Distance between nodes:", dist_str);
 	}
     }
+  int hosts[XRD_MAX_NODES];
+  for (int i = 0; i<num_hosts;i++) {
+    hosts[i] = i;
+  }
   // Sort distance array, shortest first
+  // Use insertion sort because it's a fast in place algorithm on small inputs
+    for (int j=1;j<num_hosts;j++) {
+      long key = distance[j];
+      int host_key = hosts[j];
+      int i = j-1;
+      while (i>=0 && distance[i]>key) {
+	distance[i+1] = distance[i];
+	hosts[i+1] = hosts[i];
+	i = i-1;
+      }
+      distance[i+1] = key;
+      hosts[i+1] = host_key;
+    }
+    // Set preference mask based on distance
+    int j=0;
+    while (j<num_hosts && j<MAX_PREF_LEVELS) {
+      mask[j] |= 1 << hosts[j];
+      j++;
+    }
+    while (j<num_hosts) {
+      mask[j] |= 1 << hosts[j];
+      j++;
+    }
+
+    // Set the preference mask at different levels
+    for (int i = 0; i < MAX_PREF_LEVELS; i++) {
+        pref.SetPreference(i, mask[i]);
+    }
+
   // Give highest prio to lowest distance, if more than priority levels just give the rest lowest priority
-  // Set preference mask based on distance
-  //pref.SetPreference(1, mask);
   return 0;
 }
