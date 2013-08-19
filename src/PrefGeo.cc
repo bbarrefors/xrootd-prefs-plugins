@@ -86,12 +86,12 @@ long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname) {
   return distance;
 }
 
-int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pref, XrdCmsPrefNodes& nodes) {
+int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pref, XrdCmsPrefNodes &nodes) {
   XrdSysError *eDest = envinfo->eDest;
   eDest->Emsg("PrefGeo", "Preference plugin is PrefGeo");
   // Get the hostname of the client who sends the request
   XrdOucEnv env(opaque);
-  SMask_t mask[MAX_PREF_LEVELS] = {0,0,0,0};
+  SMask_t mask[MAX_PREF_LEVELS] = {-1,0,0,0};
   char *client_host = env.Get("client_host");
   // Set all prefs to the same first
   eDest->Emsg("PrefGeo", "Client node name is:", client_host);
@@ -100,11 +100,13 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
   //SMask_t mask = 0;
   long distance[XRD_MAX_NODES];
   int num_hosts = 0;
+  int hosts[XRD_MAX_NODES];
   for (unsigned int i=0; i<XRD_MAX_NODES; i++)
     {
       node_name = nodes.GetNodeName(i);
       if (node_name && *node_name) 
 	{
+	  hosts[i] = i;
 	  num_hosts++;
 	  eDest->Emsg("PrefGeo", "Server node name is:", node_name);
 	  // Server node name is in the format [::IP]:PORT
@@ -118,10 +120,6 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
 	  eDest->Emsg("PrefGeo", "Distance between nodes:", dist_str);
 	}
     }
-  int hosts[XRD_MAX_NODES];
-  for (int i = 0; i<num_hosts;i++) {
-    hosts[i] = i;
-  }
   // Sort distance array, shortest first
   // Use insertion sort because it's a fast in place algorithm on small inputs
     for (int j=1;j<num_hosts;j++) {
@@ -137,14 +135,12 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
       hosts[i+1] = host_key;
     }
     // Set preference mask based on distance
-    int j=0;
-    while (j<num_hosts && j<MAX_PREF_LEVELS) {
-      mask[j] |= 1 << hosts[j];
-      j++;
-    }
-    while (j<num_hosts) {
-      mask[j] |= 1 << hosts[j];
-      j++;
+    int j=MAX_PREF_LEVELS-1;
+    int i = 0;
+    while (i<num_hosts && j>0) {
+      mask[j] |= 1 << hosts[i];
+      j--;
+      i++;
     }
 
     // Set the preference mask at different levels
