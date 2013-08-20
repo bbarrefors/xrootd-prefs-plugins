@@ -55,7 +55,7 @@ __organization__ = 'Holland Computing Center University of Nebraska - Lincoln'
 def hostIPFix(host_ip):
     # PRE: Domain name in format [::IP]:PORT
     # POST: IP address of domain name
-    ip = str(host_ip).strip('[::').partition(']')
+    ip = str(host_ip).strip('[::').partition(']:')
     ip = ip[0]
     return ip
 
@@ -95,8 +95,10 @@ def IPDistance(host_ip, client_domain, database_path):
     # Given two IP addresses, find distance between these in real life
     # Pre: Two IP addresses in str format
     # Post: Distance in km between the two IP addresses in float
-    host_subnet = IPToSubnet(hostIPFix(host_ip))
-    client_subnet = IPToSubnet(domainToIP(client_domain))
+    host_ip = hostIPFix(host_ip)
+    host_subnet = IPToSubnet(host_ip)
+    client_ip = domainToIP(client_domain)
+    client_subnet = IPToSubnet(client_ip)
     # Use PygeoIP
     gi4 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCity.dat', pygeoip.MEMORY_CACHE)
     gi6 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCityv6.dat', pygeoip.MEMORY_CACHE)
