@@ -12,7 +12,7 @@
 #include <sstream>
 
 #include "PrefGeo.hh"
-#include "PrefClient.hh"
+
 #include "XrdCms/XrdCmsPref.hh"
 #include "XrdCms/XrdCmsPrefNodes.hh"
 #include "XrdOuc/XrdOucEnv.hh"
