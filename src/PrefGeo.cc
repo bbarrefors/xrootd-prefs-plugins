@@ -12,7 +12,7 @@
 #include <sstream>
 
 #include "PrefGeo.hh"
-#include "PrefClient.hh"
+
 #include "XrdCms/XrdCmsPref.hh"
 #include "XrdCms/XrdCmsPrefNodes.hh"
 #include "XrdOuc/XrdOucEnv.hh"
@@ -38,6 +38,8 @@ long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname) {
   PyObject *pName, *pModule, *pFunc;
   PyObject *pArgs, *pValue;
   Py_Initialize();
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
   pName = PyString_FromString(IP_PLUGIN);
   pModule = PyImport_Import(pName);
   Py_DECREF(pName);
@@ -57,7 +59,19 @@ long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname) {
       pValue = PyObject_CallObject(pFunc, pArgs);
       Py_DECREF(pArgs);
       if (pValue != NULL) {
-        distance = PyInt_AsLong(pValue);
+	// Can check for python version if needed, need to uncomment
+	//const char * version = Py_GetVersion();
+	//char short_ver[10];
+	//strncpy(short_ver, version, 1);
+	//short_ver[1] = '\0';
+	//char ver_2[] = "2";
+	//char ver_3[] = "3";
+	//if (strcmp(short_ver,ver_2) == 0) {
+	//  distance = PyLong_AsLong(pValue);
+	//}
+	//else if (strcmp(short_ver,ver_3) == 0) {
+	distance = PyLong_AsLong(pValue);
+	//}
         Py_DECREF(pValue);
       }
       else {
@@ -82,6 +96,7 @@ long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname) {
     PyErr_Print();
     return distance;
   }
+  PyGILState_Release(gstate);
   Py_Finalize();
   return distance;
 }
