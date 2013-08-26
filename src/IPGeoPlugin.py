@@ -111,4 +111,5 @@ def IPDistance(host_ip, client_domain, database_path):
     client_lat = client_dict['latitude']
     client_long = client_dict['longitude']
     distance = coordinateDiff(host_lat, host_long, client_lat, client_long)
+    print distance
     return distance
