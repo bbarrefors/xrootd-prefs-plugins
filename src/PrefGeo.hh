@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "XrdCms/XrdCmsXmi.hh"
+#include "XrdSys/XrdSysPthread.hh"
 
 // This plugin set preferences based on geo location of client IP vs host IP
 
@@ -73,12 +74,12 @@ public:
   PrefGeo(XrdCmsXmiEnv* env) : envinfo(env) {}
   ~PrefGeo() {}
 
-  long GetDistance(const char * host_hostname, char * client_hostname);
+  long GetDistance(const char * host_hostname, char * client_hostname, XrdSysMutexHelper * mtxhlpr);
   
 private:
   
   XrdCmsXmiEnv * envinfo;
-  
+  static XrdSysMutex * mtx;
 };
 
 #endif /* defined(____PrefGeo__) */

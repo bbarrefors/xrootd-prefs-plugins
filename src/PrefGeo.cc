@@ -20,6 +20,8 @@
 #include "XrdSys/XrdSysError.hh"
 #include "XrdSys/XrdSysLogger.hh"
 
+XrdSysMutex *PrefGeo::mtx = new XrdSysMutex();
+
 extern "C" {
 
   XrdCmsXmi *XrdCmsgetXmi(int, char **, XrdCmsXmiEnv * env)
@@ -31,15 +33,14 @@ extern "C" {
   }
 }
 
-long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname) {
+long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname, XrdSysMutexHelper * mtxhlpr) {
   XrdSysError *eDest = envinfo->eDest;
   setenv("PYTHONPATH", PATH_PYTHON_SCRIPT, 0);
   long distance = 100000;
   PyObject *pName, *pModule, *pFunc;
   PyObject *pArgs, *pValue;
+  mtxhlpr->Lock(PrefGeo::mtx);
   Py_Initialize();
-  PyGILState_STATE gstate;
-  gstate = PyGILState_Ensure();
   pName = PyString_FromString(IP_PLUGIN);
   pModule = PyImport_Import(pName);
   Py_DECREF(pName);
@@ -96,13 +97,14 @@ long PrefGeo::GetDistance(const char * host_hostname, char * client_hostname) {
     PyErr_Print();
     return distance;
   }
-  PyGILState_Release(gstate);
   Py_Finalize();
+  mtxhlpr->UnLock();
   return distance;
 }
 
 int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pref, XrdCmsPrefNodes &nodes) {
   XrdSysError *eDest = envinfo->eDest;
+  XrdSysMutexHelper *mtxhlpr = new XrdSysMutexHelper(PrefGeo::mtx);
   eDest->Emsg("PrefGeo", "Preference plugin is PrefGeo");
   // Get the hostname of the client who sends the request
   XrdOucEnv env(opaque);
@@ -126,7 +128,7 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
 	  eDest->Emsg("PrefGeo", "Server node name is:", node_name);
 	  // Server node name is in the format [::IP]:PORT
 	  // Get distance from python script
-	  distance[i] = GetDistance(node_name, client_host);
+	  distance[i] = GetDistance(node_name, client_host, mtxhlpr);
 	  long dist_tmp = distance[i];
 	  std::stringstream ss;
 	  ss << dist_tmp;
@@ -163,6 +165,8 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
         pref.SetPreference(i, mask[i]);
     }
 
+    delete mtxhlpr;
+    mtxhlpr = NULL;
   // Give highest prio to lowest distance, if more than priority levels just give the rest lowest priority
   return 0;
 }
