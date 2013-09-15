@@ -20,7 +20,7 @@
 #include "XrdSys/XrdSysError.hh"
 #include "XrdSys/XrdSysLogger.hh"
 
-XrdSysMutex *PrefGeo::mtx = new XrdSysMutex();
+XrdSysMutex PrefGeo::mtx;
 
 extern "C" {
 

@@ -79,7 +79,7 @@ public:
 private:
   
   XrdCmsXmiEnv * envinfo;
-  static XrdSysMutex * mtx;
+  static XrdSysMutex mtx;
 };
 
 #endif /* defined(____PrefGeo__) */
