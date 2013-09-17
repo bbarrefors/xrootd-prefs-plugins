@@ -74,12 +74,12 @@ public:
   PrefGeo(XrdCmsXmiEnv* env) : envinfo(env) {}
   ~PrefGeo() {}
 
-  long GetDistance(const char * host_hostname, char * client_hostname, XrdSysMutexHelper * mtxhlpr);
+  long GetDistance(const char * host_hostname, char * client_hostname);
   
 private:
   
   XrdCmsXmiEnv * envinfo;
-  static XrdSysMutex * mtx;
+  static XrdSysMutex mtx;
 };
 
 #endif /* defined(____PrefGeo__) */

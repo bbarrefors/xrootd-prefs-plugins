@@ -104,14 +104,13 @@ def IPDistance(host_ip, client_domain, database_path):
     gi6 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCityv6.dat', pygeoip.MEMORY_CACHE)
     host_dict = gi4.record_by_addr(host_subnet)
     if (not host_dict):
-        return 1000000
+        return long(1000000)
     client_dict = gi4.record_by_addr(client_subnet)
     if (not client_dict):
-        return 1000000
+        return long(1000000)
     host_lat = host_dict['latitude']
     host_long = host_dict['longitude']
     client_lat = client_dict['latitude']
     client_long = client_dict['longitude']
     distance = coordinateDiff(host_lat, host_long, client_lat, client_long)
-    print distance
-    return distance
+    return long(distance)
