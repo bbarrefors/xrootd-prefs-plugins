@@ -123,7 +123,7 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
 	  num_hosts++;
 	  // Server node name is in the format [::IP]:PORT
 	  // Get distance from python script
-	  mtxhlpr->Lock(mtx);
+	  mtxhlpr->Lock(&mtx);
 	  distance[i] = GetDistance(node_name, client_host);
 	  mtxhlpr->UnLock();
 	  long dist_tmp = distance[i];
@@ -131,7 +131,7 @@ int PrefGeo::Pref(XrdCmsReq *, const char *, const char * opaque, XrdCmsPref &pr
 	  ss << dist_tmp;
 	  const char * dist_str = NULL;
 	  dist_str = ss.str().c_str();
-	  eDest->Emsg("PrefGeo", "Distance between nodes client ", client_host, " and server ", node_name, " is ", dist_str);
+	  eDest->Emsg("PrefGeo", client_host, node_name, dist_str);
 	}
     }
   // Sort distance array, shortest first
