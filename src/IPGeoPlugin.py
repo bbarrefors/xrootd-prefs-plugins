@@ -52,6 +52,13 @@ __organization__ = 'Holland Computing Center University of Nebraska - Lincoln'
 #                                                                             #
 ###############################################################################
     
+def port(host_ip):
+    # PRE: Domain name in format [::IP]:PORT
+    # POST: PORT address of domain name
+    port = str(host_ip).strip('[::').partition(']:')
+    port = port[2]
+    return port
+
 def hostIPFix(host_ip):
     # PRE: Domain name in format [::IP]:PORT
     # POST: IP address of domain name
@@ -95,16 +102,20 @@ def IPDistance(host_ip, client_domain, database_path):
     # Given two IP addresses, find distance between these in real life
     # Pre: Two IP addresses in str format
     # Post: Distance in km between the two IP addresses in float
-    host_ip = hostIPFix(host_ip)
-    host_subnet = IPToSubnet(host_ip)
+    #host_ip = hostIPFix(host_ip)
+    #host_subnet = IPToSubnet(host_ip)
+    host_port = port(host_ip)
     client_ip = domainToIP(client_domain)
     client_subnet = IPToSubnet(client_ip)
     # Use PygeoIP
     gi4 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCity.dat', pygeoip.MEMORY_CACHE)
     gi6 = pygeoip.GeoIP(str(database_path) + 'GeoLiteCityv6.dat', pygeoip.MEMORY_CACHE)
-    host_dict = gi4.record_by_addr(host_subnet)
-    if (not host_dict):
-        return long(1000000)
+    #host_dict = gi4.record_by_addr(host_subnet)
+#    if (not host_dict):
+    if (host_port == "1096"):
+        return long(100000)
+    else:
+        return long(1000)
     client_dict = gi4.record_by_addr(client_subnet)
     if (not client_dict):
         return long(1000000)
